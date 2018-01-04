@@ -19,6 +19,7 @@ public class QuizActivity extends AppCompatActivity {
 
     private static final String TAG = "QuizActivity";
     private static final String KEY_INDEX = "index";
+    private static final String CHEAT_COUNT = "cheat_count";
     private static final int REQUEST_CODE_CHEAT = 0;
 
     private Button mTrueButton;
@@ -27,6 +28,7 @@ public class QuizActivity extends AppCompatActivity {
     private Button mPrevButton;
     private Button mCheatButton;
     private TextView mQuestionTextView;
+    private TextView mCheatCountTextView;
 
     private Question[] mQuestionsBank = new Question[] {
         new Question(R.string.question_text, true),
@@ -38,6 +40,7 @@ public class QuizActivity extends AppCompatActivity {
     };
 
     private int mCurrentIndex = 0;
+    private int mCheatCount = 0;
     private boolean mIsCheater;
 
     @Override
@@ -45,6 +48,7 @@ public class QuizActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
         Log.i(TAG, "onSaveInstanceState");
         savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
+        savedInstanceState.putInt(CHEAT_COUNT, mCheatCount);
     }
 
     // called when an instance of the activity subclass is created.
@@ -59,6 +63,7 @@ public class QuizActivity extends AppCompatActivity {
 
         if (savedInstanceState != null) {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+            mCheatCount = savedInstanceState.getInt(CHEAT_COUNT, 0);
         }
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
@@ -78,6 +83,10 @@ public class QuizActivity extends AppCompatActivity {
                 updateQuestion();
             }
         });
+
+        mCheatCountTextView = (TextView) findViewById(R.id.cheat_count_view);
+        DecimalFormat df = new DecimalFormat("#");
+        mCheatCountTextView.setText(df.format(mCheatCount));
 
         // getting the view object for each of the buttons.
         // takes the button's resource ID as an argument.
@@ -135,9 +144,11 @@ public class QuizActivity extends AppCompatActivity {
         mCheatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+            if (mCheatCount < 3) {
                 boolean answerIsTrue = mQuestionsBank[mCurrentIndex].isAnswerTrue();
                 Intent intent = CheatActivity.newIntent(QuizActivity.this, answerIsTrue);
                 startActivityForResult(intent, REQUEST_CODE_CHEAT);
+            }
             }
         });
     }
@@ -153,6 +164,7 @@ public class QuizActivity extends AppCompatActivity {
                 return;
             }
             mIsCheater = CheatActivity.wasAnswerShown(data);
+            mCheatCount++;
         }
     }
 
